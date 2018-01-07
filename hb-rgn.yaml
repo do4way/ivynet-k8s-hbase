@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hb-rgn-svc
+spec:
+  clusterIP: None
+  selector:
+    app: hb-rgn
+  ports:
+    - name: p1
+      port: 16020
+    - name: p2
+      port: 16030
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: hb-rgn
+spec:
+  serviceName: "hb-rgn-svc"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: hb-rgn
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - hb-rgn
+              topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: hb-rgn
+          image: gcr.io/ivynet-containers/hbase:1.2.6
+          env:
+            - name: HBASE_SERVER_TYPE
+              value: regionserver
+            - name: HDFS_PATH
+              value: "hdfs-namenode-0.hdfs-namenode.default.svc.cluster.local:8020"
+            - name: ZOOKEEPER_SERVICE_LIST
+              value: zk-0.zk-svc.default.svc.cluster.local,zk-1.zk-svc.default.svc.cluster.local,zk-2.zk-svc.default.svc.cluster.local
+            - name: ZOOKEEPER_PORT
+              value: "2181"
+            - name: ZNODE_PARENT
+              value: hbase
+          ports:
+            - containerPort: 16020
+              protocol: TCP
+            - containerPort: 16030
+              protocol: TCP

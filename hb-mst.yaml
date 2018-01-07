@@ -1,0 +1,47 @@
+# A headless service to create DNS records.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hb-mst-svc
+  labels:
+    app: hb-mst-svc
+spec:
+  ports:
+  - port: 8020
+    name: fs
+  clusterIP: None
+  selector:
+    app: hb-mst
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: hb-mst
+spec:
+  serviceName: "hb-mst-svc"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hb-mst
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: hb-mst
+          image: gcr.io/ivynet-containers/hbase:1.2.6
+          env:
+            - name:          HBASE_SERVER_TYPE
+              value:         master
+            - name:          HDFS_PATH
+              value:         "hdfs-namenode-0.hdfs-namenode.default.svc.cluster.local:8020"
+            - name:          ZOOKEEPER_SERVICE_LIST
+              value:         zk-0.zk-svc.default.svc.cluster.local,zk-1.zk-svc.default.svc.cluster.local,zk-2.zk-svc.default.svc.cluster.local
+            - name:          ZOOKEEPER_PORT
+              value:         "2181"
+            - name:          ZNODE_PARENT
+              value:         hbase
+          ports:
+          - containerPort: 16000
+            protocol:      TCP
+          - containerPort: 16010
+            protocol:      TCP

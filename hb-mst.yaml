@@ -29,6 +29,10 @@ spec:
       containers:
         - name: hb-mst
           image: gcr.io/ivynet-containers/hbase:1.2.6
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "250m"
           env:
             - name:          HBASE_SERVER_TYPE
               value:         master

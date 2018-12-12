@@ -26,13 +26,17 @@ spec:
         app: hb-mst
     spec:
       terminationGracePeriodSeconds: 0
+      nodeSelector:
+          beta.kubernetes.io/instance-type: n1-highmem-2
       containers:
         - name: hb-mst
           image: gcr.io/ivynet-containers/hbase:1.2.6
           resources:
             requests:
-              memory: "2Gi"
-              cpu: "250m"
+              memory: 4Gi
+              cpu: 250m
+            limits:
+              memory: 4Gi
           env:
             - name:          HBASE_SERVER_TYPE
               value:         master

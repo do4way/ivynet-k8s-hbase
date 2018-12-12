@@ -18,7 +18,7 @@ metadata:
   name: hb-rgn
 spec:
   serviceName: "hb-rgn-svc"
-  replicas: 6
+  replicas: 4
   template:
     metadata:
       labels:
@@ -35,9 +35,17 @@ spec:
                     - hb-rgn
               topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 0
+      nodeSelector:
+          beta.kubernetes.io/instance-type: n1-highmem-2
       containers:
         - name: hb-rgn
           image: gcr.io/ivynet-containers/hbase:1.2.6
+          resources:
+            requests:
+              memory: 2Gi
+              cpu: 250m
+            limits:
+              memory: 2Gi
           env:
             - name: HBASE_SERVER_TYPE
               value: regionserver
